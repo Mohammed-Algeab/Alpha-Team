@@ -17,11 +17,15 @@
 # كما هو في المتصفح" — هذا هو السلوك الصحيح لـ SPA.
 # ══════════════════════════════════════════════════════════════════
 
-# PWA — كل مسار تحت /app/ يُرجع /app/index.html (200 = silent rewrite)
-/app/*    /app/index.html    200
+# PWA — كل مسار تحت /app/ يُرجع /app/ (200 = silent rewrite)
+# ملاحظة: لا نكتب /app/index.html صراحة لأن Workers Assets يحل index.html
+# تلقائياً لأي مسار ينتهي بـ /، وكتابته صراحة هنا تسبب حلقة لا نهائية
+# (الخادم يطبّع /app/index.html → /app/ داخلياً، فتُطابق هذه القاعدة من جديد)
+/app/*    /app/    200
 
 # Share (OG/giscus bots) — معالجة صريحة بـPages Function، لا تمر هنا
 /share/*  /share/:splat      200
 
 # Web — HashRouter لا يحتاج redirect لكن نضيف fallback للأمان
-/*        /index.html        200
+# نفس المنطق: /  بدل /index.html لتفادي حلقة التطبيع
+/*        /    200
