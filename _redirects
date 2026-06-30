@@ -1,0 +1,27 @@
+# Cloudflare Pages — SPA Routing Rules
+# ══════════════════════════════════════════════════════════════════
+#
+# هيكل النشر:
+#   /          → web (HashRouter — لا يحتاج redirect لأن # لا يصل للخادم)
+#   /app/*     → pwa (BrowserRouter — يحتاج redirect لكل مسار داخلي)
+#   /share/*   → functions/share/ (Pages Functions — تُنفَّذ قبل أي قاعدة
+#                هنا تلقائياً حسب ترتيب أولوية Cloudflare، فلا تصطدم بقاعدة
+#                /* أدناه؛ مُستثناة صراحة للوضوح فقط)
+#
+# المشكلة: BrowserRouter في PWA يعني أن /app/projects حقيقي في URL،
+# فعند reload أو نسخ الرابط يطلب الخادم ملف /app/projects/index.html
+# الذي لا يوجد → 404. الحل: إعادة توجيه كل /app/* → /app/index.html
+# مع الحفاظ على query string والـ fragment.
+#
+# ملاحظة: الـ 200 (وليس 301/302) يعني "أرجع هذا الملف لكن أبقِ الـ URL
+# كما هو في المتصفح" — هذا هو السلوك الصحيح لـ SPA.
+# ══════════════════════════════════════════════════════════════════
+
+# PWA — كل مسار تحت /app/ يُرجع /app/index.html (200 = silent rewrite)
+/app/*    /app/index.html    200
+
+# Share (OG/giscus bots) — معالجة صريحة بـPages Function، لا تمر هنا
+/share/*  /share/:splat      200
+
+# Web — HashRouter لا يحتاج redirect لكن نضيف fallback للأمان
+/*        /index.html        200
